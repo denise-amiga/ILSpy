@@ -92,6 +92,20 @@ namespace ICSharpCode.Decompiler.CSharp
 			}
 		}
 
+		public override void VisitCatchClause(CatchClause catchClause)
+		{
+			VisitAsSequencePoint(catchClause.Condition);
+			var annotation = catchClause.Annotation<CatchExceptionSpecifierAnnotation>();
+			if (annotation != null) {
+				StartSequencePoint(catchClause.CatchToken);
+				AddToSequencePointRaw(catchClause.Ancestors.OfType<ILFunction>().FirstOrDefault(), annotation.Ranges);
+				EndSequencePoint(catchClause.CatchToken.StartLocation, catchClause.RParToken.IsNull ? catchClause.CatchToken.EndLocation : catchClause.RParToken.EndLocation);
+			}
+			StartSequencePoint(catchClause);
+			catchClause.Body.AcceptVisitor(this);
+			EndSequencePoint(catchClause.StartLocation, catchClause.EndLocation);
+		}
+
 		public override void VisitForStatement(ForStatement forStatement)
 		{
 			// Every element of a for-statement is it's own sequence point.
@@ -271,6 +285,13 @@ namespace ICSharpCode.Decompiler.CSharp
 			foreach (var child in inst.Children) {
 				AddToSequencePoint(child);
 			}
+		}
+
+		void AddToSequencePointRaw(ILFunction function, IEnumerable<Interval> ranges)
+		{
+			current.Intervals.AddRange(ranges);
+			Debug.Assert(current.Function == null || current.Function == function);
+			current.Function = function;
 		}
 
 		internal static bool HasUsableILRange(ILInstruction inst)

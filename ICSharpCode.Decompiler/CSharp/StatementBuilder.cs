@@ -373,6 +373,14 @@ namespace ICSharpCode.Decompiler.CSharp
 				if (!handler.Filter.MatchLdcI4(1))
 					catchClause.Condition = exprBuilder.TranslateCondition(handler.Filter);
 				catchClause.Body = ConvertAsBlock(handler.Body);
+				var firstStatement = catchClause.Body.Statements.FirstOrDefault();
+				if (firstStatement != null) {
+					var firstStatementInstruction = firstStatement.DescendantsAndSelf.SelectMany(n => n.Annotations).OfType<ILInstruction>().MinBy(i => i.StartILOffset);
+					var handlerRange = handler.Body.StartILOffset;
+					catchClause.AddAnnotation(new CatchExceptionSpecifierAnnotation(new Interval(handlerRange, firstStatementInstruction.StartILOffset)));
+				} else {
+					catchClause.AddAnnotation(new CatchExceptionSpecifierAnnotation(handler.Body.ILRanges.ToArray()));
+				}
 				tryCatch.CatchClauses.Add(catchClause);
 			}
 			return tryCatch;

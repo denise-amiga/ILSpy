@@ -24,6 +24,7 @@ using ICSharpCode.Decompiler.CSharp.Syntax;
 using ICSharpCode.Decompiler.IL;
 using ICSharpCode.Decompiler.Semantics;
 using ICSharpCode.Decompiler.TypeSystem;
+using ICSharpCode.Decompiler.Util;
 
 namespace ICSharpCode.Decompiler.CSharp
 {
@@ -241,6 +242,20 @@ namespace ICSharpCode.Decompiler.CSharp
 			GetEnumeratorCall = getEnumeratorCall;
 			MoveNextCall = moveNextCall;
 			GetCurrentCall = getCurrentCall;
+		}
+	}
+
+	/// <summary>
+	/// Annotates a <see cref="TryCatchHandler"/> with ILRange that should
+	/// be used in the exception-specifier sequence point.
+	/// </summary>
+	public class CatchExceptionSpecifierAnnotation
+	{
+		public readonly Interval[] Ranges;
+
+		public CatchExceptionSpecifierAnnotation(params Interval[] ranges)
+		{
+			this.Ranges = ranges;
 		}
 	}
 
